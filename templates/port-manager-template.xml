@@ -1,0 +1,296 @@
+<config-template xmlns="http://tail-f.com/ns/config/1.0"
+                 servicepoint="port-manager">
+  <devices xmlns="http://tail-f.com/ns/ncs">
+    <device>
+      <name>{device}</name>
+      <config>
+
+        <!-- Cisco IOS-XR -->
+        <interface xmlns="http://tail-f.com/ned/cisco-ios-xr">
+
+          <!-- TenGigE -->
+          <TenGigE  when="{/iosxr/TenGigE}">
+            <id>{/iosxr/TenGigE}</id>
+            <description>{/port-group-name}</description>
+            <description when="{/description}">{/description}</description>
+            <mtu>{/mtu}</mtu>
+            <shutdown tags="delete" />
+          </TenGigE>
+
+          <!-- Access ports with vlan -->
+          <TenGigE-subinterface
+            when="{/vlan-id and iosxr/TenGigE and /port-type='access'}">
+            <?foreach {/iosxr/TenGigE}?>
+              <TenGigE>
+                <id>{current()}.{/vlan-id}</id>
+                <description>{/port-group-name}</description>
+                <description when="{/description}">{/description}</description>
+                <mode>l2transport</mode>
+                <encapsulation>
+                  <dot1q>
+                    <vlan-id>{/vlan-id}</vlan-id>
+                  </dot1q>
+                </encapsulation>
+                <rewrite>
+                  <ingress>
+                    <tag>
+                      <pop>1</pop>
+                      <mode>symmetric</mode>
+                    </tag>
+                  </ingress>
+                </rewrite>
+              </TenGigE>
+            <?end?>
+          </TenGigE-subinterface>
+
+          <!-- No vlans -->
+          <TenGigE-subinterface
+            when="{not(/vlan-id) and not(/vlan-ids) and iosxr/TenGigE}">
+            <?foreach {/iosxr/TenGigE}?>
+              <TenGigE>
+                <id>{current()}.1</id>
+                <description>{/port-group-name}</description>
+                <description when="{/description}">{/description}</description>
+                <mode>l2transport</mode>
+                <encapsulation>
+                  <untagged/>
+                </encapsulation>
+              </TenGigE>
+            <?end?>
+          </TenGigE-subinterface>
+
+          <!-- Trunk ports -->
+          <TenGigE-subinterface when="{/iosxr/TenGigE and /port-type='trunk'}">
+            <?foreach {/iosxr/TenGigE}?>
+              <TenGigE>
+                <id>{current()}.{/vlan-ids[1]}</id>
+                <description>{/port-group-name}</description>
+                <description when="{/description}">{/description}</description>
+                <mode>l2transport</mode>
+                <encapsulation>
+                  <dot1q>
+                    <vlan-id>{/vlan-ids}</vlan-id>
+                  </dot1q>
+                </encapsulation>
+                <rewrite>
+                  <ingress>
+                    <tag>
+                      <pop>1</pop>
+                      <mode>symmetric</mode>
+                    </tag>
+                  </ingress>
+                </rewrite>
+              </TenGigE>
+            <?end?>
+          </TenGigE-subinterface>
+
+          <!-- GigabitEthernet -->
+          <GigabitEthernet when="{iosxr/GigabitEthernet}">
+            <id>{iosxr/GigabitEthernet}</id>
+            <description>{/port-group-name}</description>
+            <description when="{/description}">{/description}</description>
+            <mtu>{/mtu}</mtu>
+            <shutdown tags="delete" />
+          </GigabitEthernet>
+
+          <!-- Access ports with vlan -->
+          <GigabitEthernet-subinterface when="{/vlan-id and
+            /iosxr/GigabitEthernet and /port-type='access'}">
+            <?foreach {/iosxr/GigabitEthernet}?>
+              <GigabitEthernet>
+                <id>{current()}.{/vlan-id}</id>
+                <description>{/port-group-name}</description>
+                <description when="{/description}">{/description}</description>
+                <mode>l2transport</mode>
+                <encapsulation>
+                  <dot1q>
+                    <vlan-id>{/vlan-id}</vlan-id>
+                  </dot1q>
+                </encapsulation>
+                <rewrite>
+                  <ingress>
+                    <tag>
+                      <pop>1</pop>
+                      <mode>symmetric</mode>
+                    </tag>
+                  </ingress>
+                </rewrite>
+              </GigabitEthernet>
+            <?end?>
+          </GigabitEthernet-subinterface>
+
+          <!-- No vlans -->
+          <GigabitEthernet-subinterface when="{not(/vlan-id) and
+            not(/vlan-ids) and /iosxr/GigabitEthernet}">
+            <?foreach {/iosxr/GigabitEthernet}?>
+              <GigabitEthernet>
+                <id>{current()}.1</id>
+                <description>{/port-group-name}</description>
+                <description when="{/description}">{/description}</description>
+                <mode>l2transport</mode>
+                <encapsulation>
+                  <untagged/>
+                </encapsulation>
+              </GigabitEthernet>
+            <?end?>
+          </GigabitEthernet-subinterface>
+
+          <!-- Trunk ports -->
+          <GigabitEthernet-subinterface
+            when="{/iosxr/GigabitEthernet and /port-type='trunk'}">
+            <?foreach {/iosxr/GigabitEthernet}?>
+              <GigabitEthernet>
+                <id>{current()}.{/vlan-ids[1]}</id>
+                <description>{/port-group-name}</description>
+                <description when="{/description}">{/description}</description>
+                <mode>l2transport</mode>
+                <encapsulation>
+                  <dot1q>
+                    <vlan-id>{/vlan-ids}</vlan-id>
+                  </dot1q>
+                </encapsulation>
+                <rewrite>
+                  <ingress>
+                    <tag>
+                      <pop>1</pop>
+                      <mode>symmetric</mode>
+                    </tag>
+                  </ingress>
+                </rewrite>
+              </GigabitEthernet>
+            <?end?>
+          </GigabitEthernet-subinterface>
+        </interface>
+
+<!-- Cisco IOS -->
+<!-- uncomment this section for Cisco IOS support
+
+        <interface xmlns="urn:ios">
+
+  <!-- GigabitEthernet --
+
+          <GigabitEthernet when="{ios/GigabitEthernet}">
+            <name>{ios/GigabitEthernet}</name>
+            <mtu>{/mtu}</mtu>
+            <description>{/port-group-name}</description>
+            <description when="{/description}">{X /description}</description>
+
+    <!-- Access ports with vlan --
+
+            <switchport when="{/vlan-id and /port-type='access'}">
+              <mode>
+                <access />
+              </mode>
+              <access>
+                <vlan>{/vlan-id}</vlan>
+              </access>
+            </switchport>
+
+    <!-- Trunk ports with vlans --
+
+            <switchport when="{/vlan-ids and /port-type='trunk'}">
+              <trunk>
+                <allowed>
+                  <vlan>
+                    <vlans>{/vlan-ids}</vlans>
+                  </vlan>
+                </allowed>
+              </trunk>
+            </switchport>
+            <spanning-tree>
+              <portfast>
+              </portfast>
+            </spanning-tree>
+            <speed>{/speed}</speed>
+            <duplex>{/duplex}</duplex>
+            <shutdown tags="delete" />
+          </GigabitEthernet>
+ 
+  <!-- FastEthernet --
+
+         <FastEthernet when="{ios/FastEthernet}"> 
+            <name>{ios/FastEthernet}</name>
+            <mtu>{/mtu}</mtu>
+            <description>{/port-group-name}</description>
+            <description when="{/description}">{/description}</description>
+
+    <!-- Access ports with vlan --
+
+             <switchport when="{/vlan-id and /port-type='access'}">
+              <mode>
+                <access />
+              </mode>
+              <access>
+                <vlan>{/vlan-id}</vlan>
+              </access>
+            </switchport>
+ 
+    <!-- Trunk ports with vlans --
+
+            <switchport when="{/vlan-ids and /port-type='trunk'}">
+              <trunk>
+                <allowed>
+                  <vlan>
+                    <vlans>{/vlan-ids}</vlans>
+                  </vlan>
+                </allowed>
+              </trunk>
+            </switchport>
+            <spanning-tree>
+             <portfast>
+             </portfast>
+            </spanning-tree>
+            <speed>{/speed}</speed>
+            <duplex>{/duplex}</duplex>
+            <shutdown tags="delete" />
+          </FastEthernet>
+        </interface> 
+<!-- Cisco IOS end -->
+
+<!-- Juniper JUNOS -->
+<!-- uncomment this section for JUNOS support
+
+        <configuration xmlns="http://xml.juniper.net/xnm/1.1/xnm">
+          <interfaces>
+            <interface>
+              <name>{junos/junos-interface}</name>
+              <description>{/port-group-name}</description>
+              <description when="{/description}">{/description}</description>
+              <no-traps />
+              <unit>
+                <name>0</name>
+                <family>
+                  <ethernet-switching>
+                    <vlan>
+                      <members>{/vlan-name}</members>
+                    </vlan>
+                    <port-mode>{/port-type}</port-mode>
+                  </ethernet-switching>
+                </family>
+              </unit>
+              <mtu>{/mtu}</mtu>
+              <apply-groups when="{/speed='10' and /duplex ='full'}">EDGE-BASE-10M-TX-OPTIONS</apply-groups> 
+              <apply-groups when="{/speed='10' and /duplex ='half'}">EDGE-BASE-10M-HALF-TX-OPTIONS</apply-groups>
+              <apply-groups when="{/speed='100' and /duplex ='full'}">EDGE-BASE-1GE-TX-100M-OPTIONS</apply-groups>
+              <apply-groups when="{/speed='1000' and /duplex ='full'}">EDGE-BASE-1GE-TX-OPTIONS</apply-groups>
+            </interface>
+          </interfaces>
+          <protocols>
+            <rstp>
+              <interface when="{/juniper-st-mode='edge'}">
+                <name>{/junos/junos-interface}</name>
+                <edge/>
+              </interface>
+              <interface when="{/juniper-st-mode='disable'}">
+                <name>{/junos/junos-interface}</name>
+                <disable/>
+              </interface>
+            </rstp>
+          </protocols>
+        </configuration>  
+<!-- Juniper JUNOS end -->
+
+      </config>
+    </device>
+  </devices>
+</config-template>
