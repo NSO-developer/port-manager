@@ -1,0 +1,254 @@
+module port-manager {
+  yang-version 1.1;
+  namespace "http://com/example/port-manager";
+  prefix port-manager;
+
+  import tailf-common {
+    prefix tailf;
+  }
+  import tailf-ncs {
+    prefix ncs;
+  }
+
+  import tailf-ned-cisco-ios-xr {
+    prefix cisco-ios-xr;
+  }
+  import cisco-iosxr-cli {
+    prefix iosxr-ned-id;
+  }
+
+// ========================================================================= //
+//  Uncomment this section to add Cisco IOS support
+//
+//  import tailf-ned-cisco-ios {
+//    prefix ios;
+//  }
+//  import cisco-ios-cli {
+//    prefix ios-ned-id;
+//  }
+// ========================================================================= //
+
+
+// ========================================================================= //
+//  Uncomment this section to add JUNOS support
+//
+//  import junos {
+//    prefix junos;
+//  }
+//  import juniper-junos-nc {
+//    prefix junos-ned-id;
+//  }
+// ========================================================================= //
+
+
+  organization "Cisco TME";
+  contact "https://community.cisco.com/t5/nso-developer-hub/ct-p/5672j-dev-nso";
+  description "Generic Port Manager service YANG model";
+  reference "https://developer.cisco.com/site/nso/";
+
+  revision 2019-04-24 {
+    description "NSO 5.1 XR-only version";
+  }
+
+  augment /ncs:services {
+
+    list port-manager {
+      tailf:info "Port Manager service";
+      uses ncs:service-data;
+      ncs:servicepoint "port-manager";
+
+      key "device port-group-name";
+
+      leaf device {
+        tailf:info "device name";
+        type leafref {
+          path "/ncs:devices/ncs:device/ncs:name";
+        }
+      }
+
+      leaf port-group-name {
+        tailf:info "port identifier (free text)";
+      type string;
+    }
+
+    // When the device is a IOS XR device
+      container iosxr {
+        when "derived-from(deref(../device)/../ncs:device-type" +
+             "/ncs:cli/ncs:ned-id, 'iosxr-ned-id:cisco-iosxr-cli')" {
+          tailf:dependency "../device";
+        }
+
+        choice xr-interface-type {
+          mandatory true;
+
+          leaf-list GigabitEthernet {
+            tailf:info "Gigabit ethernet interface";
+            type leafref {
+              path "deref(../../device)/../ncs:config/cisco-ios-xr:interface" +
+                   "/cisco-ios-xr:GigabitEthernet/cisco-ios-xr:id";
+            }
+            // No more than 1 service can own each interface
+            must "count(/ncs:services/port-manager" +
+                 "[device=current()/../../device]" +
+                 "/iosxr/GigabitEthernet[.=current()])<=1";
+          }
+
+          leaf-list TenGigE {
+            tailf:info "TenGigE interface";
+            type leafref {
+              path "deref(../../device)/../ncs:config/cisco-ios-xr:interface" +
+                   "/cisco-ios-xr:TenGigE/cisco-ios-xr:id";
+            }
+            must "count(/ncs:services/port-manager" +
+                 "[device=current()/../../device]" +
+                 "/iosxr/TenGigE[.=current()])<=1";
+          }
+
+        }
+      }
+
+// ========================================================================= //
+// Uncomment this section to add Cisco IOS support
+//
+//      container ios {
+//        when "derived-from(deref(../device)/../ncs:device-type" +
+//             "/ncs:cli/ncs:ned-id, 'ios-ned-id:cisco-ios-cli')" {
+//          tailf:dependency "../device";
+//        }
+//
+//        choice ios-interface-type {
+//          mandatory true;
+//
+//          leaf-list GigabitEthernet {
+//            tailf:info "Gigabit ethernet interface";
+//            type leafref {
+//              path "deref(../../device)/../ncs:config" +
+//                   "/ios:interface/ios:GigabitEthernet/ios:name";
+//            }
+//            must "count(/ncs:services/port-manager" +
+//                 "[device=current()/../../device]" +
+//                 "/ios/GigabitEthernet[.=current()])<=1";
+//          }
+//
+//          leaf-list FastEthernet {
+//            tailf:info "Fast ethernet interface";
+//            type leafref {
+//              path "deref(../../device)/../ncs:config" +
+//                   "/ios:interface/ios:FastEthernet/ios:name";
+//            }
+//            must "count(/ncs:services/port-manager" +
+//                 "[device=current()/../../device]" +
+//                 "/ios/FastEthernet[.=current()])<=1";
+//          }
+//        }
+//      }
+// ========================================================================= //
+
+
+// ========================================================================= //
+// Uncomment this section to add JUNOS support
+//
+//      container junos {
+//        when "derived-from(deref(../device)/../ncs:device-type" +
+//             "/ncs:netconf/ncs:ned-id, 'junos-ned-id:juniper-junos-nc')" {
+//          tailf:dependency "../device";
+//        }
+//
+//        leaf-list junos-interface {
+//          tailf:info "Junos interface";
+//          type leafref {
+//            path "deref(../../device)/../ncs:config/junos:configuration" +
+//                 "/junos:interfaces/junos:interface/junos:name";
+//          }
+//          must "count(/ncs:services/port-manager" +
+//               "[device=current()/../../device]" +
+//               "/junos/junos-interface[.=current()])<=1";
+//        }
+//      }
+// ========================================================================= //
+
+      leaf port-type{
+        tailf:info "Specify the port_type (Access or Trunk port)";
+        type enumeration{
+          enum access;
+          enum trunk;
+        }
+        mandatory true;
+      }
+
+      leaf description {
+        tailf:info "Description to be set on this port";
+        type string;
+      }
+
+      leaf speed {
+        tailf:info "Speed to be set on this port (in Mbps)";
+        type enumeration {
+          enum 10;      //  10M
+          enum 100;     // 100M
+          enum 1000;    //   1G
+          enum 10000;   //  10G
+          enum 40000;   //  40G
+          enum 100000;  // 100G
+        }
+      }
+
+      leaf duplex {
+        tailf:info "Duplex to be set on this port";
+        type enumeration {
+          enum full;
+          enum half;
+        }
+        default "full";
+      }
+
+      leaf mtu {
+        tailf:info "MTU to be set on this port";
+        type uint32;
+      }
+
+
+// ========================================================================= //
+// Uncomment this section to add JUNOS support
+//
+//      leaf juniper-st-mode{
+//        when "/ncs:devices/ncs:device[ncs:name=current()/../device]" +
+//             "/ncs:device-type/ncs:netconf";
+//        tailf:info "Juniper spanning tree mode";
+//        type enumeration {
+//          enum edge;
+//          enum disable;
+//        }
+//      }
+// ========================================================================= //
+
+      leaf vlan-id {
+        when "../port-type !='trunk' and not(/ncs:devices/ncs:device" +
+             "[ncs:name=current()/../device]/ncs:device-type/ncs:netconf)";
+        tailf:info "VLAN to be linked to this service";
+        type uint16 {
+          range "1..4094";
+        }
+      }
+
+      leaf-list vlan-ids {
+        when "../port-type='trunk' and not(/ncs:devices/ncs:device" +
+             "[ncs:name=current()/../device]/ncs:device-type/ncs:netconf)";
+        tailf:cli-drop-node-name;
+        tailf:cli-range-list-syntax;
+        type string {
+          tailf:info "<1-4094>;;VLAN IDs of the allowed VLANs " +
+                     "when this port is in trunking mode";
+        }
+      }
+
+      leaf-list vlan-name {
+        when "/ncs:devices/ncs:device[ncs:name=current()/../device]" +
+             "/ncs:device-type/ncs:netconf";
+        tailf:info "Name for the VLAN linked to this service";
+        type string;
+        description "VLAN name used for this service";
+      }
+    }
+  }
+}
