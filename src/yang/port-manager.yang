@@ -104,21 +104,6 @@ module port-manager {
                  "/iosxr/TenGigE[.=current()])<=1";
           }
 
-// ========================================================================= //
-//  Uncomment this section if using the full IOS-XR NED
-//
-//          leaf-list FastEthernet {
-//            tailf:info "Fast ethernet interface";
-//            type leafref {
-//              path "deref(../../device)/../ncs:config/cisco-ios-xr:interface" +
-//                    "/cisco-ios-xr:FastEthernet/cisco-ios-xr:id";
-//            }
-//            must "count(/ncs:services/port-manager" +
-//                 "[device=current()/../../device]" +
-//                 "/iosxr/FastEthernet[.=current()])<=1";
-//          }
-// ========================================================================= //
-
         }
       }
 
