@@ -59,8 +59,8 @@
             <?end?>
           </TenGigE-subinterface>
 
-          <!-- Trunk ports -->
-          <TenGigE-subinterface when="{/iosxr/TenGigE and /port-type='trunk'}">
+          <!-- Trunk ports with vlans -->
+          <TenGigE-subinterface when="{/iosxr/TenGigE and /port-type='trunk' and /vlan-ids}">
             <?foreach {/iosxr/TenGigE}?>
               <TenGigE>
                 <id>{current()}.{/vlan-ids[1]}</id>
