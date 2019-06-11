@@ -1,5 +1,5 @@
 module port-manager {
-  yang-version 1.1;
+  yang-version 1.2;
   namespace "http://com/example/port-manager";
   prefix port-manager;
 
@@ -46,7 +46,7 @@ module port-manager {
   description "Generic Port Manager service YANG model";
   reference "https://developer.cisco.com/site/nso/";
 
-  revision 2019-04-24 {
+  revision 2019-06-11 {
     description "NSO 5.1 XR-only version";
   }
 
